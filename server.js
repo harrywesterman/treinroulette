@@ -183,6 +183,22 @@ function sanitizeGameState(code, state) {
             .map(([player, score]) => [String(player).slice(0, 40), Number.isInteger(score) ? score : 0]),
         )
       : {};
+  const discoveries = Array.isArray(state.discoveries)
+    ? state.discoveries
+        .slice(0, 50)
+        .filter((item) => Number.isInteger(item.questIndex) && Number.isFinite(item.lat) && Number.isFinite(item.lon))
+        .map((item) => ({
+          questIndex: item.questIndex,
+          questTitle: String(item.questTitle || "").slice(0, 120),
+          player: String(item.player || "Team").slice(0, 40),
+          mode: item.mode === "Battle" ? "Battle" : "Team up",
+          lat: item.lat,
+          lon: item.lon,
+          stationName: String(item.stationName || "").slice(0, 80),
+          source: item.source === "GPS" ? "GPS" : "Halte",
+          foundAt: String(item.foundAt || new Date().toISOString()),
+        }))
+    : [];
 
   return {
     code,
@@ -195,6 +211,13 @@ function sanitizeGameState(code, state) {
       : [],
     sharedLocation,
     battleScores,
+    soundLevel:
+      Number.isFinite(state.soundLevel) && state.soundLevel >= 0 && state.soundLevel <= 100
+        ? state.soundLevel
+        : 95,
+    vibrationEnabled:
+      typeof state.vibrationEnabled === "boolean" ? state.vibrationEnabled : true,
+    discoveries,
     activeScreen: ["lobby", "intro", "vote", "game", "settings"].includes(state.activeScreen)
       ? state.activeScreen
       : "lobby",

@@ -510,13 +510,39 @@ input[type="range"] {
   margin-top: 24px;
 }
 
-.battle-panel {
+.battle-panel,
+.win-panel {
   display: grid;
   gap: 13px;
 }
 
-.battle-panel[hidden] {
+.battle-panel[hidden],
+.win-panel[hidden] {
   display: none;
+}
+
+.win-panel {
+  margin-top: 24px;
+  padding: 18px;
+  background: var(--green);
+  color: white;
+}
+
+.win-panel span {
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.win-panel h3 {
+  margin: 6px 0 0;
+  font-family: Impact, "Arial Black", sans-serif;
+  font-size: 1.65rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.win-panel p {
+  margin-top: 8px;
 }
 
 .battle-panel ul {
@@ -544,6 +570,58 @@ input[type="range"] {
   border-radius: 50%;
   background: var(--green);
   color: white;
+}
+
+.journey-panel {
+  display: grid;
+  gap: 12px;
+  margin-top: 26px;
+  padding: 16px;
+  background: rgba(244, 241, 232, 0.92);
+  border: 1px solid var(--line);
+}
+
+.journey-panel h3 {
+  margin: 0;
+  color: var(--green);
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.journey-panel p {
+  margin-top: 5px;
+  font-size: 0.86rem;
+}
+
+.journey-map {
+  min-height: 220px;
+  overflow: hidden;
+  background: #dfeee0;
+  border: 1px solid var(--line);
+}
+
+.discovery-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.discovery-list li {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  background: white;
+}
+
+.discovery-list strong {
+  line-height: 1.1;
+}
+
+.discovery-list span {
+  color: var(--muted);
+  font-size: 0.82rem;
 }
 
 .bingo-cell {

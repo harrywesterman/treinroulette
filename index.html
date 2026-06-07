@@ -4,7 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Side Quest</title>
-    <link rel="stylesheet" href="./styles.css?v=20260607-9" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIINfQG79mOhwuhw1T6o3R4QnL/8kP9+X8M="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="./styles.css?v=20260607-12" />
   </head>
   <body>
     <main class="phone-shell" aria-live="polite">
@@ -182,12 +188,27 @@
             <button class="primary-button compact" data-action="claim-battle-point">Punt claimen</button>
           </section>
 
+          <section id="win-panel" class="win-panel" hidden>
+            <span>Bingo!</span>
+            <h3 id="win-title">Jullie hebben gewonnen</h3>
+            <p id="win-copy">Alle side quests zijn voltooid. Tijd voor een recap van jullie reis.</p>
+          </section>
+
           <div id="bingo-grid" class="bingo-grid"></div>
 
           <footer class="bottom-actions">
             <button class="secondary-button" data-action="mark-quest">Quest afvinken</button>
             <button class="primary-button" data-action="next-quest">Nieuwe quest</button>
           </footer>
+
+          <section class="journey-panel">
+            <div>
+              <h3>Reiskaart</h3>
+              <p>Alle gevonden side quests verschijnen hier met plek, speler en route.</p>
+            </div>
+            <div id="journey-map" class="journey-map" aria-label="Kaart van jullie reis"></div>
+            <ul id="discovery-list" class="discovery-list"></ul>
+          </section>
         </section>
       </section>
 
@@ -222,11 +243,11 @@
 
           <div class="range-row">
             <label for="sound">Geluid</label>
-            <input id="sound" type="range" min="0" max="100" value="95" />
+            <input id="sound" type="range" min="0" max="100" value="95" data-action="sound-level" />
           </div>
           <label class="toggle-row">
             <span>Trillingen</span>
-            <input type="checkbox" checked />
+            <input id="vibration" type="checkbox" data-action="toggle-vibration" checked />
           </label>
 
           <button class="danger-button" data-action="end-game">Het spel vroegtijdig beeindigen</button>
@@ -234,6 +255,11 @@
       </section>
     </main>
 
-    <script src="./script.js?v=20260607-9"></script>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="./script.js?v=20260607-12"></script>
   </body>
 </html>
