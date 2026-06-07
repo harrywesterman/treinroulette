@@ -7,6 +7,8 @@ services:
     restart: unless-stopped
     ports:
       - "8031:3000"
+    environment:
+      NS_API_KEY: ${NS_API_KEY:-}
     volumes:
       - treinroulette_data:/data
     healthcheck:

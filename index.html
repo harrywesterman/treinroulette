@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Side Quest</title>
-    <link rel="stylesheet" href="./styles.css?v=20260607-7" />
+    <link rel="stylesheet" href="./styles.css?v=20260607-9" />
   </head>
   <body>
     <main class="phone-shell" aria-live="polite">
@@ -158,11 +158,29 @@
           <h2 id="destination-name">Utrecht Centraal</h2>
           <p id="destination-copy">Stap uit, kijk om je heen en trek jullie eerste side quest.</p>
 
+          <article class="location-card">
+            <div>
+              <span>GPS</span>
+              <strong id="location-title">GPS-toestemming nodig</strong>
+              <p id="location-copy">Klik op de knop of start een ronde om je locatie te delen met deze spelcode.</p>
+            </div>
+            <button class="secondary-button compact" data-action="share-location">Vraag GPS</button>
+          </article>
+
           <article class="quest-card">
             <span>Side quest</span>
             <h3 id="quest-title">Maak een teamfoto met een stationsklok</h3>
             <p id="quest-copy">Bonus als iedereen tegelijk naar een andere kant kijkt.</p>
           </article>
+
+          <section id="battle-panel" class="battle-panel" hidden>
+            <div>
+              <h3>Battle score</h3>
+              <p>Claim een punt als jij deze side quest voltooit. Hoogste score wint de ronde.</p>
+            </div>
+            <ul id="battle-score-list"></ul>
+            <button class="primary-button compact" data-action="claim-battle-point">Punt claimen</button>
+          </section>
 
           <div id="bingo-grid" class="bingo-grid"></div>
 
@@ -216,6 +234,6 @@
       </section>
     </main>
 
-    <script src="./script.js?v=20260607-7"></script>
+    <script src="./script.js?v=20260607-9"></script>
   </body>
 </html>

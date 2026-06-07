@@ -454,6 +454,41 @@ input[type="range"] {
   border: 2px dashed #2b2115;
 }
 
+.location-card,
+.battle-panel {
+  margin-top: 24px;
+  padding: 16px;
+  background: rgba(244, 241, 232, 0.9);
+  border: 1px solid var(--line);
+}
+
+.location-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.location-card span,
+.battle-panel h3 {
+  margin: 0;
+  color: var(--green);
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.location-card strong {
+  display: block;
+  margin-top: 4px;
+  font-weight: 900;
+}
+
+.location-card p,
+.battle-panel p {
+  margin-top: 5px;
+  font-size: 0.86rem;
+}
+
 .quest-card span {
   color: var(--green);
   font-weight: 900;
@@ -473,6 +508,42 @@ input[type="range"] {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 7px;
   margin-top: 24px;
+}
+
+.battle-panel {
+  display: grid;
+  gap: 13px;
+}
+
+.battle-panel[hidden] {
+  display: none;
+}
+
+.battle-panel ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.battle-panel li {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  background: white;
+}
+
+.battle-panel strong {
+  min-width: 28px;
+  min-height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--green);
+  color: white;
 }
 
 .bingo-cell {

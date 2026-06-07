@@ -35,3 +35,22 @@ Spelstatus wordt per viercijferige code opgeslagen via de API:
 ```
 
 In Docker wordt deze status bewaard in het volume `treinroulette_data`.
+
+## Stations en GPS
+
+De app gebruikt GPS via de browser. Voor de stationslijst gebruikt de server:
+
+1. de NS Stations API als `NS_API_KEY` is ingesteld
+2. een ingebouwde fallbacklijst met Nederlandse stations als er geen key is
+
+Maak optioneel een `.env` bestand:
+
+```bash
+NS_API_KEY=je_ns_api_key
+```
+
+Start daarna opnieuw:
+
+```bash
+docker compose up -d --build
+```

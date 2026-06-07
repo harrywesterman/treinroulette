@@ -12,12 +12,18 @@ const questCopy = document.querySelector("#quest-copy");
 const bingoGrid = document.querySelector("#bingo-grid");
 const qrCode = document.querySelector("#qr-code");
 const settingsNameInput = document.querySelector("#settings-name");
+const locationTitle = document.querySelector("#location-title");
+const locationCopy = document.querySelector("#location-copy");
+const battlePanel = document.querySelector("#battle-panel");
+const battleScoreList = document.querySelector("#battle-score-list");
 
 let players = ["Maartje", "Pepijn", "Djurre"];
 let selectedGame = "Team up";
 let currentQuest = 0;
 let currentDestination = 0;
 let checkedBingo = new Set();
+let sharedLocation = null;
+let battleScores = {};
 let isRestoring = false;
 
 const games = [
@@ -53,6 +59,37 @@ const destinations = [
     copy: "Pak een korte wandeling en verzamel bewijs voor jullie bingokaart.",
   },
 ];
+
+let stations = [
+  { name: "Utrecht Centraal", lat: 52.0894, lon: 5.1103 },
+  { name: "Rotterdam Blaak", lat: 51.9202, lon: 4.4897 },
+  { name: "Den Haag HS", lat: 52.0693, lon: 4.3226 },
+  { name: "Amersfoort Centraal", lat: 52.1537, lon: 5.3745 },
+  { name: "Amsterdam Centraal", lat: 52.3789, lon: 4.9003 },
+  { name: "Leiden Centraal", lat: 52.1662, lon: 4.4824 },
+  { name: "Gouda", lat: 52.0176, lon: 4.7047 },
+  { name: "Eindhoven Centraal", lat: 51.4433, lon: 5.4796 },
+  { name: "Zwolle", lat: 52.5051, lon: 6.0918 },
+  { name: "Groningen", lat: 53.2105, lon: 6.5646 },
+];
+
+async function loadStations() {
+  try {
+    const response = await fetch("/api/stations", { cache: "no-store" });
+
+    if (!response.ok) {
+      return;
+    }
+
+    const payload = await response.json();
+
+    if (Array.isArray(payload.stations) && payload.stations.length) {
+      stations = payload.stations;
+    }
+  } catch {
+    // Keep the bundled fallback stations.
+  }
+}
 
 const quests = [
   {
@@ -140,6 +177,8 @@ function resetGameState() {
   currentQuest = 0;
   currentDestination = 0;
   checkedBingo = new Set();
+  sharedLocation = null;
+  battleScores = {};
 }
 
 function getGameState(activeScreen = getActiveScreenName()) {
@@ -156,6 +195,8 @@ function getGameState(activeScreen = getActiveScreenName()) {
     currentQuest,
     currentDestination,
     checkedBingo: [...checkedBingo],
+    sharedLocation,
+    battleScores,
     activeScreen,
     updatedAt: new Date().toISOString(),
   };
@@ -212,6 +253,8 @@ function applyGameState(state) {
   currentQuest = Number.isInteger(state.currentQuest) ? state.currentQuest : 0;
   currentDestination = Number.isInteger(state.currentDestination) ? state.currentDestination : 0;
   checkedBingo = new Set(Array.isArray(state.checkedBingo) ? state.checkedBingo : []);
+  sharedLocation = state.sharedLocation && Number.isFinite(state.sharedLocation.lat) ? state.sharedLocation : null;
+  battleScores = state.battleScores && typeof state.battleScores === "object" ? state.battleScores : {};
 
   return state;
 }
@@ -311,6 +354,76 @@ function renderVotes() {
     .join("");
 }
 
+function toRadians(value) {
+  return (value * Math.PI) / 180;
+}
+
+function distanceInMeters(pointA, pointB) {
+  const earthRadius = 6371e3;
+  const latA = toRadians(pointA.lat);
+  const latB = toRadians(pointB.lat);
+  const deltaLat = toRadians(pointB.lat - pointA.lat);
+  const deltaLon = toRadians(pointB.lon - pointA.lon);
+  const haversine =
+    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+    Math.cos(latA) * Math.cos(latB) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+
+  return earthRadius * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+}
+
+function formatDistance(meters) {
+  if (meters >= 1000) {
+    return `${(meters / 1000).toFixed(1)} km`;
+  }
+
+  return `${Math.round(meters)} m`;
+}
+
+function findNearestStation(location) {
+  return stations
+    .map((station) => ({
+      ...station,
+      distance: distanceInMeters(location, station),
+    }))
+    .sort((left, right) => left.distance - right.distance)[0];
+}
+
+function ensureBattleScores() {
+  battleScores = players.reduce((scores, player) => {
+    scores[player] = Number.isInteger(battleScores[player]) ? battleScores[player] : 0;
+    return scores;
+  }, {});
+}
+
+function renderLocation() {
+  if (!sharedLocation) {
+    locationTitle.textContent = "GPS-toestemming nodig";
+    locationCopy.textContent = "Klik op Vraag GPS of rond het stemmen af om je locatie met deze spelcode te delen.";
+    return;
+  }
+
+  const nearest = findNearestStation(sharedLocation);
+  locationTitle.textContent = `${nearest.name} dichtbij`;
+  locationCopy.textContent = `${formatDistance(nearest.distance)} van jullie gedeelde GPS-locatie. Nauwkeurigheid ongeveer ${Math.round(
+    sharedLocation.accuracy || 0,
+  )} m.`;
+}
+
+function renderBattle() {
+  ensureBattleScores();
+  battlePanel.hidden = selectedGame !== "Battle";
+  battleScoreList.innerHTML = players
+    .map(
+      (player) => `
+        <li>
+          <span>${escapeHtml(player)}</span>
+          <strong>${battleScores[player] || 0}</strong>
+        </li>
+      `,
+    )
+    .join("");
+}
+
 function renderGame() {
   const destination = destinations[currentDestination % destinations.length];
   const quest = quests[currentQuest % quests.length];
@@ -320,6 +433,8 @@ function renderGame() {
   destinationCopy.textContent = destination.copy;
   questTitle.textContent = quest.title;
   questCopy.textContent = quest.copy;
+  renderLocation();
+  renderBattle();
   bingoGrid.innerHTML = quests
     .map(
       (questItem, index) => `
@@ -342,8 +457,10 @@ function addPlayer(form) {
   }
 
   players = [...new Set([...players, name])];
+  ensureBattleScores();
   input.value = "";
   renderPlayers();
+  renderBattle();
   saveGame();
 }
 
@@ -357,8 +474,53 @@ function renameCurrentPlayer() {
   }
 
   players = [name, ...players.slice(1)];
+  ensureBattleScores();
   renderPlayers();
+  renderBattle();
   saveGame();
+}
+
+function requestLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error("GPS wordt niet ondersteund door deze browser."));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: true,
+      maximumAge: 30_000,
+      timeout: 12_000,
+    });
+  });
+}
+
+async function shareLocation(button = null) {
+  if (button) {
+    button.textContent = "GPS ophalen...";
+  }
+
+  try {
+    const position = await requestLocation();
+    sharedLocation = {
+      lat: position.coords.latitude,
+      lon: position.coords.longitude,
+      accuracy: position.coords.accuracy,
+      updatedAt: new Date().toISOString(),
+    };
+    renderGame();
+    saveGame("game");
+  } catch (error) {
+    locationTitle.textContent = "GPS niet beschikbaar";
+    locationCopy.textContent =
+      error.code === 1
+        ? "Locatie is geweigerd. Sta locatie toe in je browserinstellingen en probeer opnieuw."
+        : "Kon je locatie niet ophalen. Controleer GPS/bereik en probeer opnieuw.";
+  } finally {
+    if (button) {
+      button.textContent = "Vraag GPS";
+    }
+  }
 }
 
 document.addEventListener("click", async (event) => {
@@ -390,11 +552,25 @@ document.addEventListener("click", async (event) => {
   if (actionButton?.dataset.action === "finish-vote") {
     renderGame();
     showScreen("game");
+    await shareLocation();
   }
 
   if (actionButton?.dataset.action === "next-quest") {
     currentQuest = (currentQuest + 1) % quests.length;
     currentDestination = (currentDestination + 1) % destinations.length;
+    renderGame();
+    saveGame("game");
+  }
+
+  if (actionButton?.dataset.action === "share-location") {
+    await shareLocation(actionButton);
+  }
+
+  if (actionButton?.dataset.action === "claim-battle-point") {
+    ensureBattleScores();
+    const player = players[0] || "Speler";
+    battleScores[player] = (battleScores[player] || 0) + 1;
+    checkedBingo.add(currentQuest);
     renderGame();
     saveGame("game");
   }
@@ -416,13 +592,17 @@ document.addEventListener("click", async (event) => {
 
   if (removeButton) {
     players = players.filter((_, index) => index !== Number(removeButton.dataset.removePlayer));
+    ensureBattleScores();
     renderPlayers();
+    renderBattle();
     saveGame();
   }
 
   if (voteButton) {
     selectedGame = voteButton.dataset.vote;
+    ensureBattleScores();
     renderVotes();
+    renderGame();
     saveGame("vote");
   }
 
@@ -455,6 +635,8 @@ document.addEventListener("submit", async (event) => {
 });
 
 async function init() {
+  await loadStations();
+
   const urlCode = new URLSearchParams(location.search).get("code");
 
   if (urlCode) {

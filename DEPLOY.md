@@ -14,6 +14,16 @@ naar het publieke IP-adres van je server. Gebruik meestal een `A` record voor IP
 
 De container luistert op hostpoort `8031` en bewaart spelstatus in het Docker volume `treinroulette_data`.
 
+## NS API key
+
+Voor de actuele NS-stationslijst kun je een key uit het NS API Portal gebruiken. Maak op de server in deze map optioneel een `.env` bestand:
+
+```bash
+NS_API_KEY=je_ns_api_key
+```
+
+Zonder key gebruikt de app een ingebouwde fallbacklijst met Nederlandse stations.
+
 Gebruik je een bestaande reverse proxy voor `https://treinroulette.westermanonline.com`, stuur die dan door naar:
 
 ```text
