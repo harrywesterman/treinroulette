@@ -23,6 +23,7 @@ const soundInput = document.querySelector("#sound");
 const vibrationInput = document.querySelector("#vibration");
 const journeyMapElement = document.querySelector("#journey-map");
 const discoveryList = document.querySelector("#discovery-list");
+const photoInput = document.querySelector("#photo-input");
 
 let players = ["Maartje", "Pepijn", "Djurre"];
 let selectedGame = "Team up";
@@ -539,6 +540,7 @@ function getDiscoveryPlace() {
 function recordDiscovery(questIndex = currentQuest, player = selectedGame === "Battle" ? players[0] : "Team") {
   const quest = quests[questIndex % quests.length];
   const place = getDiscoveryPlace();
+  const existing = discoveries.find((item) => item.questIndex === questIndex);
   const discovery = {
     questIndex,
     questTitle: quest.title,
@@ -549,6 +551,7 @@ function recordDiscovery(questIndex = currentQuest, player = selectedGame === "B
     stationName: place.stationName,
     source: place.source,
     foundAt: new Date().toISOString(),
+    photo: existing?.photo || null,
   };
   const existingIndex = discoveries.findIndex((item) => item.questIndex === questIndex);
 
@@ -557,6 +560,19 @@ function recordDiscovery(questIndex = currentQuest, player = selectedGame === "B
   } else {
     discoveries.push(discovery);
   }
+}
+
+function attachPhotoToDiscovery(photo) {
+  recordDiscovery(currentQuest, selectedGame === "Battle" ? players[0] : "Team");
+  const discovery = discoveries.find((item) => item.questIndex === currentQuest);
+
+  if (discovery) {
+    discovery.photo = photo;
+  }
+
+  checkedBingo.add(currentQuest);
+  renderGame();
+  saveGame("game");
 }
 
 function removeDiscovery(questIndex) {
@@ -593,6 +609,7 @@ function renderJourney() {
             <li>
               <strong>${escapeHtml(item.questTitle)}</strong>
               <span>${escapeHtml(item.stationName)} - ${escapeHtml(item.player)} - ${formatTime(item.foundAt)}</span>
+              ${item.photo ? `<img src="${item.photo}" alt="Bewijsfoto voor ${escapeHtml(item.questTitle)}" />` : ""}
             </li>
           `,
         )
@@ -610,8 +627,20 @@ function renderJourney() {
 
   const points = discoveries.map((item) => [item.lat, item.lon]);
   discoveries.forEach((item, index) => {
-    L.marker([item.lat, item.lon])
-      .bindPopup(`${index + 1}. ${item.questTitle}<br>${item.stationName}<br>${item.player}`)
+    const icon = L.divIcon({
+      className: "quest-map-marker",
+      html: `<span>${index + 1}</span>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+      popupAnchor: [0, -16],
+    });
+
+    L.marker([item.lat, item.lon], { icon })
+      .bindPopup(
+        `${index + 1}. ${item.questTitle}<br>${item.stationName}<br>${item.player}${
+          item.photo ? `<br><img src="${item.photo}" alt="" style="width:120px;margin-top:6px">` : ""
+        }`,
+      )
       .addTo(markerLayer);
   });
 
@@ -872,6 +901,33 @@ document.addEventListener("change", (event) => {
     vibrate(40);
     saveGame();
   }
+});
+
+photoInput.addEventListener("change", () => {
+  const file = photoInput.files?.[0];
+
+  if (!file) {
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    const image = new Image();
+    image.addEventListener("load", () => {
+      const canvas = document.createElement("canvas");
+      const maxSize = 900;
+      const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
+
+      canvas.width = Math.round(image.width * scale);
+      canvas.height = Math.round(image.height * scale);
+      canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+      attachPhotoToDiscovery(canvas.toDataURL("image/jpeg", 0.72));
+      feedback("point");
+      photoInput.value = "";
+    });
+    image.src = reader.result;
+  });
+  reader.readAsDataURL(file);
 });
 
 document.addEventListener("submit", async (event) => {

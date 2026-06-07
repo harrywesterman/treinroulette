@@ -151,7 +151,7 @@ async function readJson(request) {
 
   for await (const chunk of request) {
     body += chunk;
-    if (body.length > 100_000) {
+    if (body.length > 2_500_000) {
       throw new Error("Payload too large");
     }
   }
@@ -197,6 +197,10 @@ function sanitizeGameState(code, state) {
           stationName: String(item.stationName || "").slice(0, 80),
           source: item.source === "GPS" ? "GPS" : "Halte",
           foundAt: String(item.foundAt || new Date().toISOString()),
+          photo:
+            typeof item.photo === "string" && item.photo.startsWith("data:image/")
+              ? item.photo.slice(0, 2_000_000)
+              : null,
         }))
     : [];
 
